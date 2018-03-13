@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/base32"
 	"encoding/base64"
 	"encoding/hex"
 	"flag"
@@ -16,10 +17,13 @@ import (
 type modeFunc = func([]byte) ([]byte, error)
 
 var modes = map[string]struct{ decoder, encoder modeFunc }{
-	"hex":        {hexDec, hexEnc},
-	"base64":     {base64Dec, base64Enc},
-	"base64-url": {base64URLDec, base64URLEnc},
-	"rot13":      {rot13, rot13},
+	"hex":              {hexDec, hexEnc},
+	"base32":           {base32Dec, base32Enc},
+	"base32-crockford": {base32CrockfordDec, base32CrockfordEnc},
+	"base32-hex":       {base32HexDec, base32HexEnc},
+	"base64":           {base64Dec, base64Enc},
+	"base64-url":       {base64URLDec, base64URLEnc},
+	"rot13":            {rot13, rot13},
 }
 
 func main() {
@@ -132,4 +136,46 @@ func rot13(src []byte) (dst []byte, err error) {
 		dst = append(dst, b)
 	}
 	return
+}
+
+func base32Enc(src []byte) (dst []byte, err error) {
+	dst = make([]byte, base32.StdEncoding.EncodedLen(len(src)))
+	base32.StdEncoding.Encode(dst, src)
+	return
+}
+
+func base32Dec(src []byte) ([]byte, error) {
+	dst := make([]byte, base32.StdEncoding.DecodedLen(len(src)))
+	n, err := base32.StdEncoding.Decode(dst, src)
+	return dst[:n], err
+}
+
+func base32HexEnc(src []byte) (dst []byte, err error) {
+	dst = make([]byte, base32.HexEncoding.EncodedLen(len(src)))
+	base32.HexEncoding.Encode(dst, src)
+	return
+}
+
+func base32HexDec(src []byte) ([]byte, error) {
+	dst := make([]byte, base32.HexEncoding.DecodedLen(len(src)))
+	n, err := base32.HexEncoding.Decode(dst, src)
+	return dst[:n], err
+}
+
+var crockfordEnc = base32.NewEncoding("0123456789ABCDEFGHJKMNPQRSTVWXYZ")
+
+func base32CrockfordEnc(src []byte) (dst []byte, err error) {
+	dst = make([]byte, crockfordEnc.EncodedLen(len(src)))
+	crockfordEnc.Encode(dst, src)
+	return
+}
+
+func base32CrockfordDec(src []byte) ([]byte, error) {
+	src = bytes.ToUpper(src)
+	src = bytes.Replace(src, []byte("I"), []byte("1"), -1)
+	src = bytes.Replace(src, []byte("L"), []byte("1"), -1)
+	src = bytes.Replace(src, []byte("O"), []byte("0"), -1)
+	dst := make([]byte, crockfordEnc.DecodedLen(len(src)))
+	n, err := crockfordEnc.Decode(dst, src)
+	return dst[:n], err
 }
