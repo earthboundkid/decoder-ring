@@ -15,6 +15,13 @@ import (
 
 type modeFunc = func([]byte) ([]byte, error)
 
+var modes = map[string]struct{ decoder, encoder modeFunc }{
+	"hex":        {hexDec, hexEnc},
+	"base64":     {base64Dec, base64Enc},
+	"base64-url": {base64URLDec, base64URLEnc},
+	"rot13":      {rot13, rot13},
+}
+
 func main() {
 	encode := flag.Bool("encode", false, "encode rather than decode")
 	flag.BoolVar(encode, "e", false, "shortcut for -encode")
@@ -76,12 +83,6 @@ func exec(f modeFunc) error {
 	return err
 }
 
-var modes = map[string]struct{ decoder, encoder modeFunc }{
-	"hex":        {hexDec, hexEnc},
-	"base64":     {base64Dec, base64Enc},
-	"base64-url": {base64URLDec, base64URLEnc},
-}
-
 func hexEnc(src []byte) (dst []byte, err error) {
 	dst = make([]byte, hex.EncodedLen(len(src)))
 	hex.Encode(dst, src)
@@ -116,4 +117,19 @@ func base64URLDec(src []byte) ([]byte, error) {
 	dst := make([]byte, base64.URLEncoding.DecodedLen(len(src)))
 	n, err := base64.URLEncoding.Decode(dst, src)
 	return dst[:n], err
+}
+
+func rot13(src []byte) (dst []byte, err error) {
+	dst = src[:0]
+	for _, b := range src {
+		if b >= 'A' && b <= 'Z' {
+			n := (b - 'A' + 13) % 26
+			b = 'A' + n
+		} else if b >= 'a' && b <= 'z' {
+			n := (b - 'a' + 13) % 26
+			b = 'a' + n
+		}
+		dst = append(dst, b)
+	}
+	return
 }
