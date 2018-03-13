@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"html"
 	"io"
 	"io/ioutil"
 	"os"
@@ -26,6 +27,7 @@ var modes = map[string]struct{ decoder, encoder modeFunc }{
 	"base64":           {base64Dec, base64Enc},
 	"base64-url":       {base64URLDec, base64URLEnc},
 	"go":               {goDec, goEnc},
+	"html":             {htmlDec, htmlEnc},
 	"json":             {jsonDec, jsonEnc},
 	"rot13":            {rot13, rot13},
 }
@@ -216,4 +218,12 @@ func jsonDec(src []byte) (dst []byte, err error) {
 	err = json.Unmarshal(src, &s)
 	dst = []byte(s)
 	return
+}
+
+func htmlEnc(src []byte) ([]byte, error) {
+	return []byte(html.EscapeString(string(src))), nil
+}
+
+func htmlDec(src []byte) (dst []byte, err error) {
+	return []byte(html.UnescapeString(string(src))), nil
 }
