@@ -189,7 +189,7 @@ func goEnc(src []byte) ([]byte, error) {
 
 func goDec(src []byte) ([]byte, error) {
 	s := string(src)
-	if len(src) > 0 && src[0] != '"' {
+	if len(src) > 0 && src[0] != '"' && src[0] != '`' && src[0] != '\'' {
 		s = "\"" + s + "\""
 	}
 	s, err := strconv.Unquote(s)
