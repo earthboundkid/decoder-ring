@@ -175,6 +175,7 @@ func base32CrockfordDec(src []byte) ([]byte, error) {
 	src = bytes.Replace(src, []byte("I"), []byte("1"), -1)
 	src = bytes.Replace(src, []byte("L"), []byte("1"), -1)
 	src = bytes.Replace(src, []byte("O"), []byte("0"), -1)
+	src = bytes.Replace(src, []byte("-"), nil, -1)
 	dst := make([]byte, crockfordEnc.DecodedLen(len(src)))
 	n, err := crockfordEnc.Decode(dst, src)
 	return dst[:n], err
