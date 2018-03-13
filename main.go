@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/hex"
 	"flag"
 	"fmt"
@@ -11,6 +12,8 @@ import (
 	"sort"
 	"strings"
 )
+
+type modeFunc = func([]byte) ([]byte, error)
 
 func main() {
 	encode := flag.Bool("encode", false, "encode rather than decode")
@@ -27,11 +30,11 @@ MODE choices are %s.
 	}
 	flag.Parse()
 
-	funcs := decoders
+	mode := modes[flag.Arg(0)].decoder
 	if *encode {
-		funcs = encoders
+		mode = modes[flag.Arg(0)].encoder
 	}
-	mode := funcs[flag.Arg(0)]
+
 	if flag.NArg() != 1 || mode == nil {
 		flag.Usage()
 		os.Exit(2)
@@ -44,15 +47,15 @@ MODE choices are %s.
 }
 
 func getModes() string {
-	modes := make([]string, 0, len(decoders))
-	for mode := range decoders {
-		modes = append(modes, mode)
+	modesStr := make([]string, 0, len(modes))
+	for mode := range modes {
+		modesStr = append(modesStr, mode)
 	}
-	sort.Strings(modes)
-	return strings.Join(modes, ",")
+	sort.Strings(modesStr)
+	return strings.Join(modesStr, ", ")
 }
 
-func exec(f func([]byte) ([]byte, error)) error {
+func exec(f modeFunc) error {
 	b, err := ioutil.ReadAll(os.Stdin)
 	if err != nil {
 		return err
@@ -73,14 +76,11 @@ func exec(f func([]byte) ([]byte, error)) error {
 	return err
 }
 
-var (
-	decoders = map[string]func([]byte) ([]byte, error){
-		"hex": hexDec,
-	}
-	encoders = map[string]func([]byte) ([]byte, error){
-		"hex": hexEnc,
-	}
-)
+var modes = map[string]struct{ decoder, encoder modeFunc }{
+	"hex":        {hexDec, hexEnc},
+	"base64":     {base64Dec, base64Enc},
+	"base64-url": {base64URLDec, base64URLEnc},
+}
 
 func hexEnc(src []byte) (dst []byte, err error) {
 	dst = make([]byte, hex.EncodedLen(len(src)))
@@ -91,5 +91,29 @@ func hexEnc(src []byte) (dst []byte, err error) {
 func hexDec(src []byte) ([]byte, error) {
 	dst := make([]byte, hex.DecodedLen(len(src)))
 	n, err := hex.Decode(dst, src)
+	return dst[:n], err
+}
+
+func base64Enc(src []byte) (dst []byte, err error) {
+	dst = make([]byte, base64.StdEncoding.EncodedLen(len(src)))
+	base64.StdEncoding.Encode(dst, src)
+	return
+}
+
+func base64Dec(src []byte) ([]byte, error) {
+	dst := make([]byte, base64.StdEncoding.DecodedLen(len(src)))
+	n, err := base64.StdEncoding.Decode(dst, src)
+	return dst[:n], err
+}
+
+func base64URLEnc(src []byte) (dst []byte, err error) {
+	dst = make([]byte, base64.URLEncoding.EncodedLen(len(src)))
+	base64.URLEncoding.Encode(dst, src)
+	return
+}
+
+func base64URLDec(src []byte) ([]byte, error) {
+	dst := make([]byte, base64.URLEncoding.DecodedLen(len(src)))
+	n, err := base64.URLEncoding.Decode(dst, src)
 	return dst[:n], err
 }
