@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"os"
 	"sort"
+	"strconv"
 	"strings"
 )
 
@@ -23,6 +24,7 @@ var modes = map[string]struct{ decoder, encoder modeFunc }{
 	"base32-hex":       {base32HexDec, base32HexEnc},
 	"base64":           {base64Dec, base64Enc},
 	"base64-url":       {base64URLDec, base64URLEnc},
+	"go":               {goDec, goEnc},
 	"rot13":            {rot13, rot13},
 }
 
@@ -179,4 +181,17 @@ func base32CrockfordDec(src []byte) ([]byte, error) {
 	dst := make([]byte, crockfordEnc.DecodedLen(len(src)))
 	n, err := crockfordEnc.Decode(dst, src)
 	return dst[:n], err
+}
+
+func goEnc(src []byte) ([]byte, error) {
+	return []byte(strconv.QuoteToASCII(string(src))), nil
+}
+
+func goDec(src []byte) ([]byte, error) {
+	s := string(src)
+	if len(src) > 0 && src[0] != '"' {
+		s = "\"" + s + "\""
+	}
+	s, err := strconv.Unquote(s)
+	return []byte(s), err
 }
