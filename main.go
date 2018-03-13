@@ -11,6 +11,7 @@ import (
 	"html"
 	"io"
 	"io/ioutil"
+	"net/url"
 	"os"
 	"sort"
 	"strconv"
@@ -30,6 +31,8 @@ var modes = map[string]struct{ decoder, encoder modeFunc }{
 	"html":             {htmlDec, htmlEnc},
 	"json":             {jsonDec, jsonEnc},
 	"rot13":            {rot13, rot13},
+	"url-path":         {urlPathDec, urlPathEnc},
+	"url-query":        {urlQueryDec, urlQueryEnc},
 }
 
 func main() {
@@ -224,6 +227,24 @@ func htmlEnc(src []byte) ([]byte, error) {
 	return []byte(html.EscapeString(string(src))), nil
 }
 
-func htmlDec(src []byte) (dst []byte, err error) {
+func htmlDec(src []byte) ([]byte, error) {
 	return []byte(html.UnescapeString(string(src))), nil
+}
+
+func urlPathEnc(src []byte) ([]byte, error) {
+	return []byte(url.PathEscape(string(src))), nil
+}
+
+func urlPathDec(src []byte) ([]byte, error) {
+	s, err := url.PathUnescape(string(src))
+	return []byte(s), err
+}
+
+func urlQueryEnc(src []byte) ([]byte, error) {
+	return []byte(url.QueryEscape(string(src))), nil
+}
+
+func urlQueryDec(src []byte) ([]byte, error) {
+	s, err := url.QueryUnescape(string(src))
+	return []byte(s), err
 }
