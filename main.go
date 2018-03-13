@@ -5,6 +5,7 @@ import (
 	"encoding/base32"
 	"encoding/base64"
 	"encoding/hex"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
@@ -25,6 +26,7 @@ var modes = map[string]struct{ decoder, encoder modeFunc }{
 	"base64":           {base64Dec, base64Enc},
 	"base64-url":       {base64URLDec, base64URLEnc},
 	"go":               {goDec, goEnc},
+	"json":             {jsonDec, jsonEnc},
 	"rot13":            {rot13, rot13},
 }
 
@@ -194,4 +196,24 @@ func goDec(src []byte) ([]byte, error) {
 	}
 	s, err := strconv.Unquote(s)
 	return []byte(s), err
+}
+
+func jsonEnc(src []byte) ([]byte, error) {
+	s := string(src)
+	b, err := json.Marshal(&s)
+	return b, err
+}
+
+func jsonDec(src []byte) (dst []byte, err error) {
+	if len(src) > 0 && src[0] != '"' {
+		dst = make([]byte, len(src)+2)
+		dst[0] = '"'
+		dst[len(dst)-1] = '"'
+		copy(dst[1:], src)
+		src = dst
+	}
+	var s string
+	err = json.Unmarshal(src, &s)
+	dst = []byte(s)
+	return
 }
