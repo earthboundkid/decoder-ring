@@ -16,6 +16,8 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+
+	"golang.org/x/text/encoding/ianaindex"
 )
 
 type modeFunc = func([]byte) ([]byte, error)
@@ -43,16 +45,28 @@ func main() {
 
     decoder-ring [-encode] <MODE>
 
-MODE choices are %s.
+MODE choices are %s, or an IANA encoding name.
 
 `, getModes())
 		flag.PrintDefaults()
 	}
 	flag.Parse()
 
-	mode := modes[flag.Arg(0)].decoder
+	modeStr := flag.Arg(0)
+	mode := modes[modeStr].decoder
 	if *encode {
-		mode = modes[flag.Arg(0)].encoder
+		mode = modes[modeStr].encoder
+	}
+
+	if mode == nil {
+		i, err := ianaindex.IANA.Encoding(modeStr)
+		if err == nil {
+			if *encode {
+				mode = i.NewEncoder().Bytes
+			} else {
+				mode = i.NewDecoder().Bytes
+			}
+		}
 	}
 
 	if flag.NArg() != 1 || mode == nil {
