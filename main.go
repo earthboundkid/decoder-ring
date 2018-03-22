@@ -40,6 +40,10 @@ var modes = map[string]struct{ decoder, encoder modeFunc }{
 func main() {
 	encode := flag.Bool("encode", false, "encode rather than decode")
 	flag.BoolVar(encode, "e", false, "shortcut for -encode")
+	strip := flag.Bool("strip", true, "strip trailing newlines from input")
+	flag.BoolVar(strip, "s", true, "shortcut for -strip")
+	emit := flag.Bool("emit", true, "emit trailing newline (UTF-8)")
+	flag.BoolVar(emit, "t", true, "shortcut for -emit")
 	flag.Usage = func() {
 		fmt.Fprintf(flag.CommandLine.Output(), `Usage of decoder-ring:
 
@@ -74,7 +78,7 @@ MODE choices are %s, or an IANA encoding name.
 		os.Exit(2)
 	}
 
-	if err := exec(mode); err != nil {
+	if err := exec(mode, *strip, *emit); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
@@ -89,23 +93,27 @@ func getModes() string {
 	return strings.Join(modesStr, ", ")
 }
 
-func exec(f modeFunc) error {
+func exec(f modeFunc, stripNewline, emitNewline bool) error {
 	b, err := ioutil.ReadAll(os.Stdin)
 	if err != nil {
 		return err
 	}
-	// Strip trailing newlines
-	if len(b) > 0 && b[len(b)-1] == '\n' {
-		b = b[:len(b)-1]
+	if stripNewline {
+		if len(b) > 0 && b[len(b)-1] == '\n' {
+			b = b[:len(b)-1]
+		}
 	}
 	b, err = f(b)
 	if err != nil {
 		return err
 	}
-
+	var trailer string
+	if emitNewline {
+		trailer = "\n"
+	}
 	_, err = io.Copy(os.Stdout, io.MultiReader(
 		bytes.NewReader(b),
-		strings.NewReader("\n"),
+		strings.NewReader(trailer),
 	))
 	return err
 }
