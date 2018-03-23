@@ -20,9 +20,9 @@ Usage of decoder-ring:
 
     decoder-ring [-encode] <MODE>
 
-MODE choices are base32, base32-crockford, base32-hex, base64, base64-url, go,
-hex, hex-extended*, html, json, rot13, url-path, url-query, or an IANA encoding
-name. Modes marked with * are encode only.
+MODE choices are base32, base32-crockford, base32-hex, base64, base64-url,
+codepoint*, go, hex, hex-extended*, html, json, rot13, url-path, url-query, or
+an IANA encoding name. Modes marked with * are encode only.
 
   -e    shortcut for -encode
   -emit
@@ -46,6 +46,25 @@ Uryyb, Jbeyq!
 
 $ echo 'Hello, World!' | decoder-ring -e ebcdic-cp-us | decoder-ring -e hex-extended
 00000000  c8 85 93 93 96 6b 40 e6  96 99 93 84 5a           |.....k@.....Z|
+
+$ echo 'Hello, こんにちはワールド!' | decoder-ring -e codepoint
+U+0048  H       LATIN CAPITAL LETTER H
+U+0065  e       LATIN SMALL LETTER E
+U+006C  l       LATIN SMALL LETTER L
+U+006C  l       LATIN SMALL LETTER L
+U+006F  o       LATIN SMALL LETTER O
+U+002C  ,       COMMA
+U+0020          SPACE
+U+3053  こ      HIRAGANA LETTER KO
+U+3093  ん      HIRAGANA LETTER N
+U+306B  に      HIRAGANA LETTER NI
+U+3061  ち      HIRAGANA LETTER TI
+U+306F  は      HIRAGANA LETTER HA
+U+30EF  ワ      KATAKANA LETTER WA
+U+30FC  ー      KATAKANA-HIRAGANA PROLONGED SOUND MARK
+U+30EB  ル      KATAKANA LETTER RU
+U+30C9  ド      KATAKANA LETTER DO
+U+0021  !       EXCLAMATION MARK
 ```
 
 ## Endorsements

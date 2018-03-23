@@ -16,21 +16,24 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"unicode"
 
 	"golang.org/x/text/encoding/ianaindex"
+	"golang.org/x/text/unicode/runenames"
 )
 
 type modeFunc = func([]byte) ([]byte, error)
 
 var modes = map[string]struct{ decoder, encoder modeFunc }{
-	"hex":              {hexDec, hexEnc},
-	"hex-extended":     {nil, hexExtEnc},
 	"base32":           {base32Dec, base32Enc},
 	"base32-crockford": {base32CrockfordDec, base32CrockfordEnc},
 	"base32-hex":       {base32HexDec, base32HexEnc},
 	"base64":           {base64Dec, base64Enc},
 	"base64-url":       {base64URLDec, base64URLEnc},
+	"codepoint":        {nil, codepointEnc},
 	"go":               {goDec, goEnc},
+	"hex":              {hexDec, hexEnc},
+	"hex-extended":     {nil, hexExtEnc},
 	"html":             {htmlDec, htmlEnc},
 	"json":             {jsonDec, jsonEnc},
 	"rot13":            {rot13, rot13},
@@ -281,4 +284,21 @@ func urlQueryEnc(src []byte) ([]byte, error) {
 func urlQueryDec(src []byte) ([]byte, error) {
 	s, err := url.QueryUnescape(string(src))
 	return []byte(s), err
+}
+
+func codepointEnc(src []byte) ([]byte, error) {
+	runes := []rune(string(src))
+	var buf bytes.Buffer
+	for i, r := range runes {
+		if i > 0 {
+			io.WriteString(&buf, "\n")
+		}
+		s := "\uFFFD"
+		if unicode.IsPrint(r) {
+			s = string(r)
+		}
+		fmt.Fprintf(&buf, "%U\t%s\t%s", r, s, runenames.Name(r))
+	}
+
+	return buf.Bytes(), nil
 }
