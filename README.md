@@ -42,3 +42,9 @@ Uryyb, Jbeyq!
 $ echo 'Hello, World!' | decoder-ring ebcdic-cp-us | decoder-ring -e hex
 c3a7c38125253fc28cc280c3af3fc38a25c380c281
 ```
+
+## Endorsements
+
+> Useful
+
+— [barryzxb](https://www.reddit.com/r/golang/comments/86ewvx/decoderring_a_cli_tool_for_decodingencoding_from/dw4vmdy/)
