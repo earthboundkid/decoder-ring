@@ -20,7 +20,9 @@ Usage of decoder-ring:
 
     decoder-ring [-encode] <MODE>
 
-MODE choices are base32, base32-crockford, base32-hex, base64, base64-url, go, hex, html, json, rot13, url-path, url-query, or an IANA encoding name.
+MODE choices are base32, base32-crockford, base32-hex, base64, base64-url, go,
+hex, hex-extended*, html, json, rot13, url-path, url-query, or an IANA encoding
+name. Modes marked with * are encode only.
 
   -e    shortcut for -encode
   -emit
@@ -35,12 +37,15 @@ MODE choices are base32, base32-crockford, base32-hex, base64, base64-url, go, h
 
 $ echo 'Hello, World!' | decoder-ring -e base64
 SGVsbG8sIFdvcmxkIQ==
+
 $ echo SGVsbG8sIFdvcmxkIQ== | decoder-ring base64
 Hello, World!
+
 $ echo 'Hello, World!' | decoder-ring rot13
 Uryyb, Jbeyq!
-$ echo 'Hello, World!' | decoder-ring ebcdic-cp-us | decoder-ring -e hex
-c3a7c38125253fc28cc280c3af3fc38a25c380c281
+
+$ echo 'Hello, World!' | decoder-ring -e ebcdic-cp-us | decoder-ring -e hex-extended
+00000000  c8 85 93 93 96 6b 40 e6  96 99 93 84 5a           |.....k@.....Z|
 ```
 
 ## Endorsements

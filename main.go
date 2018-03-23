@@ -24,6 +24,7 @@ type modeFunc = func([]byte) ([]byte, error)
 
 var modes = map[string]struct{ decoder, encoder modeFunc }{
 	"hex":              {hexDec, hexEnc},
+	"hex-extended":     {nil, hexExtEnc},
 	"base32":           {base32Dec, base32Enc},
 	"base32-crockford": {base32CrockfordDec, base32CrockfordEnc},
 	"base32-hex":       {base32HexDec, base32HexEnc},
@@ -49,7 +50,7 @@ func main() {
 
     decoder-ring [-encode] <MODE>
 
-MODE choices are %s, or an IANA encoding name.
+MODE choices are %s, or an IANA encoding name. Modes marked with * are encode only.
 
 `, getModes())
 		flag.PrintDefaults()
@@ -78,6 +79,10 @@ MODE choices are %s, or an IANA encoding name.
 		os.Exit(2)
 	}
 
+	if modeStr == "hex-extended" {
+		*emit = false
+	}
+
 	if err := exec(mode, *strip, *emit); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
@@ -86,7 +91,10 @@ MODE choices are %s, or an IANA encoding name.
 
 func getModes() string {
 	modesStr := make([]string, 0, len(modes))
-	for mode := range modes {
+	for mode, mf := range modes {
+		if mf.decoder == nil {
+			mode += "*"
+		}
 		modesStr = append(modesStr, mode)
 	}
 	sort.Strings(modesStr)
@@ -128,6 +136,10 @@ func hexDec(src []byte) ([]byte, error) {
 	dst := make([]byte, hex.DecodedLen(len(src)))
 	n, err := hex.Decode(dst, src)
 	return dst[:n], err
+}
+
+func hexExtEnc(src []byte) (dst []byte, err error) {
+	return []byte(hex.Dump(src)), nil
 }
 
 func base64Enc(src []byte) (dst []byte, err error) {
