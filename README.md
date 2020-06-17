@@ -24,6 +24,8 @@ MODE choices are base32, base32-crockford, base32-hex, base64, base64-url,
 codepoint*, go, hex, hex-extended*, html, json, qp, rot13, url-path, url-query,
 or an IANA encoding name. Modes marked with * are encode only.
 
+As a convenience feature, when this executable is symlinked as 'encoder-ring', -e defaults to true.
+
   -e    shortcut for -encode
   -emit
         emit trailing newline (UTF-8) (default true)

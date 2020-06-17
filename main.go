@@ -44,8 +44,9 @@ var modes = map[string]struct{ decoder, encoder modeFunc }{
 }
 
 func main() {
-	encode := flag.Bool("encode", false, "encode rather than decode")
-	flag.BoolVar(encode, "e", false, "shortcut for -encode")
+	encode := os.Args[0] == "encoder-ring"
+	flag.BoolVar(&encode, "encode", encode, "encode rather than decode")
+	flag.BoolVar(&encode, "e", encode, "shortcut for -encode")
 	strip := flag.Bool("strip", true, "strip trailing newlines from input")
 	flag.BoolVar(strip, "s", true, "shortcut for -strip")
 	emit := flag.Bool("emit", true, "emit trailing newline (UTF-8)")
@@ -57,6 +58,8 @@ func main() {
 
 MODE choices are %s, or an IANA encoding name. Modes marked with * are encode only.
 
+As a convenience feature, when this executable is symlinked as 'encoder-ring', -e defaults to true.
+
 `, getModes())
 		flag.PrintDefaults()
 	}
@@ -64,14 +67,14 @@ MODE choices are %s, or an IANA encoding name. Modes marked with * are encode on
 
 	modeStr := flag.Arg(0)
 	mode := modes[modeStr].decoder
-	if *encode {
+	if encode {
 		mode = modes[modeStr].encoder
 	}
 
 	if mode == nil {
 		i, err := ianaindex.IANA.Encoding(modeStr)
 		if err == nil {
-			if *encode {
+			if encode {
 				mode = i.NewEncoder().Bytes
 			} else {
 				mode = i.NewDecoder().Bytes
