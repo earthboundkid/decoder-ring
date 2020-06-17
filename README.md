@@ -21,8 +21,8 @@ Usage of decoder-ring:
     decoder-ring [-encode] <MODE>
 
 MODE choices are base32, base32-crockford, base32-hex, base64, base64-url,
-codepoint*, go, hex, hex-extended*, html, json, rot13, url-path, url-query, or
-an IANA encoding name. Modes marked with * are encode only.
+codepoint*, go, hex, hex-extended*, html, json, qp, rot13, url-path, url-query,
+or an IANA encoding name. Modes marked with * are encode only.
 
   -e    shortcut for -encode
   -emit

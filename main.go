@@ -11,6 +11,7 @@ import (
 	"html"
 	"io"
 	"io/ioutil"
+	"mime/quotedprintable"
 	"net/url"
 	"os"
 	"sort"
@@ -36,6 +37,7 @@ var modes = map[string]struct{ decoder, encoder modeFunc }{
 	"hex-extended":     {nil, hexExtEnc},
 	"html":             {htmlDec, htmlEnc},
 	"json":             {jsonDec, jsonEnc},
+	"qp":               {quotedPrintableDec, quotedPrintableEnc},
 	"rot13":            {rot13, rot13},
 	"url-path":         {urlPathDec, urlPathEnc},
 	"url-query":        {urlQueryDec, urlQueryEnc},
@@ -301,4 +303,22 @@ func codepointEnc(src []byte) ([]byte, error) {
 	}
 
 	return buf.Bytes(), nil
+}
+
+func quotedPrintableEnc(src []byte) ([]byte, error) {
+	var buf bytes.Buffer
+	w := quotedprintable.NewWriter(&buf)
+	if _, err := w.Write(src); err != nil {
+		return nil, err
+	}
+	if err := w.Close(); err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
+}
+
+func quotedPrintableDec(src []byte) ([]byte, error) {
+	r := quotedprintable.NewReader(bytes.NewReader(src))
+	return ioutil.ReadAll(r)
 }
