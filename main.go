@@ -10,10 +10,10 @@ import (
 	"fmt"
 	"html"
 	"io"
-	"io/ioutil"
 	"mime/quotedprintable"
 	"net/url"
 	"os"
+	"runtime/debug"
 	"sort"
 	"strconv"
 	"strings"
@@ -52,7 +52,7 @@ func main() {
 	emit := flag.Bool("emit", true, "emit trailing newline (UTF-8)")
 	flag.BoolVar(emit, "t", true, "shortcut for -emit")
 	flag.Usage = func() {
-		fmt.Fprintf(flag.CommandLine.Output(), `Usage of decoder-ring:
+		fmt.Fprintf(flag.CommandLine.Output(), `Usage of decoder-ring %s:
 
     decoder-ring [-encode] <MODE>
 
@@ -60,7 +60,7 @@ MODE choices are %s, or an IANA encoding name. Modes marked with * are encode on
 
 As a convenience feature, when this executable is symlinked as 'encoder-ring', -e defaults to true.
 
-`, getModes())
+`, getVersion(), getModes())
 		flag.PrintDefaults()
 	}
 	flag.Parse()
@@ -97,6 +97,13 @@ As a convenience feature, when this executable is symlinked as 'encoder-ring', -
 	}
 }
 
+func getVersion() string {
+	if i, ok := debug.ReadBuildInfo(); ok {
+		return i.Main.Version
+	}
+	return "(unknown)"
+}
+
 func getModes() string {
 	modesStr := make([]string, 0, len(modes))
 	for mode, mf := range modes {
@@ -110,7 +117,7 @@ func getModes() string {
 }
 
 func exec(f modeFunc, stripNewline, emitNewline bool) error {
-	b, err := ioutil.ReadAll(os.Stdin)
+	b, err := io.ReadAll(os.Stdin)
 	if err != nil {
 		return err
 	}
@@ -323,5 +330,5 @@ func quotedPrintableEnc(src []byte) ([]byte, error) {
 
 func quotedPrintableDec(src []byte) ([]byte, error) {
 	r := quotedprintable.NewReader(bytes.NewReader(src))
-	return ioutil.ReadAll(r)
+	return io.ReadAll(r)
 }

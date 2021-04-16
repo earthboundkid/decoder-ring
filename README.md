@@ -9,14 +9,14 @@ First install [Go](http://golang.org).
 If you just want to install the binary to your current directory and don't care about the source code, run
 
 ```bash
-GOBIN="$(pwd)" GOPATH="$(mktemp -d)" go get github.com/carlmjohnson/decoder-ring
+GOBIN="$(pwd)" go install github.com/carlmjohnson/decoder-ring@latest
 ```
 
 
 ## Screenshots
 ```bash
 $ decoder-ring -h
-Usage of decoder-ring:
+Usage of decoder-ring v0.21.1:
 
     decoder-ring [-encode] <MODE>
 
